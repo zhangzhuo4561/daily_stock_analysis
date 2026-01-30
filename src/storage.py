@@ -95,6 +95,9 @@ class StockDaily(Base):
     ma10 = Column(Float)
     ma20 = Column(Float)
     volume_ratio = Column(Float)  # 量比
+    ma7 = Column(Float)
+    ma13 = Column(Float)
+    ma24 = Column(Float)
     
     # 数据来源
     data_source = Column(String(50))  # 记录数据来源（如 AkshareFetcher）
@@ -127,6 +130,9 @@ class StockDaily(Base):
             'ma5': self.ma5,
             'ma10': self.ma10,
             'ma20': self.ma20,
+            'ma7': self.ma7,
+            'ma13': self.ma13,
+            'ma24': self.ma24,
             'volume_ratio': self.volume_ratio,
             'data_source': self.data_source,
         }
@@ -1359,6 +1365,9 @@ class DatabaseManager:
                         existing.ma5 = row.get('ma5')
                         existing.ma10 = row.get('ma10')
                         existing.ma20 = row.get('ma20')
+                        existing.ma7 = row.get('ma7')
+                        existing.ma13  = row.get('ma13')
+                        existing.ma24  = row.get('ma24')
                         existing.volume_ratio = row.get('volume_ratio')
                         existing.data_source = data_source
                         existing.updated_at = datetime.now()
@@ -1377,6 +1386,9 @@ class DatabaseManager:
                             ma5=row.get('ma5'),
                             ma10=row.get('ma10'),
                             ma20=row.get('ma20'),
+                            ma7=row.get('ma7'),
+                            ma13  = row.get('ma13'),
+                            ma24 = row.get('ma24'),
                             volume_ratio=row.get('volume_ratio'),
                             data_source=data_source,
                         )
@@ -1460,22 +1472,27 @@ class DatabaseManager:
         - 多头排列：close > ma5 > ma10 > ma20
         - 空头排列：close < ma5 < ma10 < ma20
         - 震荡整理：其他情况
+
+        判断条件-JCC：
+        - 多头排列：close > ma7 > ma13 > ma24
+        - 空头排列：close < ma7 < ma13 < ma24
+        - 震荡整理：其他情况
         """
         # 注意：这里的均线形态判断基于“close/ma5/ma10/ma20”静态比较，
         # 未考虑均线拐点、斜率、或不同数据源复权口径差异。
         # 该行为目前保留（按需求不改逻辑）。
         close = data.close or 0
-        ma5 = data.ma5 or 0
-        ma10 = data.ma10 or 0
-        ma20 = data.ma20 or 0
+        ma7 = data.ma7 or 0
+        ma13 = data.ma13 or 0
+        ma24 = data.ma24 or 0
         
-        if close > ma5 > ma10 > ma20 > 0:
+        if close > ma7 > ma13 > ma24 > 0:
             return "多头排列 📈"
-        elif close < ma5 < ma10 < ma20 and ma20 > 0:
+        elif close < ma7 < ma13 < ma24 and ma24 > 0:
             return "空头排列 📉"
-        elif close > ma5 and ma5 > ma10:
+        elif close > ma7 > ma13:
             return "短期向好 🔼"
-        elif close < ma5 and ma5 < ma10:
+        elif close < ma7 < ma13:
             return "短期走弱 🔽"
         else:
             return "震荡整理 ↔️"
@@ -1985,9 +2002,9 @@ if __name__ == "__main__":
         'volume': [10000000],
         'amount': [18200000000],
         'pct_chg': [1.5],
-        'ma5': [1810.0],
-        'ma10': [1800.0],
-        'ma20': [1790.0],
+        'ma7': [1810.0],
+        'ma13': [1800.0],
+        'ma24': [1790.0],
         'volume_ratio': [1.2],
     })
     

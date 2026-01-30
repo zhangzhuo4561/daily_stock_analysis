@@ -539,10 +539,10 @@ class GeminiAnalyzer:
             },
             "price_position": {
                 "current_price": 当前价格数值,
-                "ma5": MA5数值,
-                "ma10": MA10数值,
-                "ma20": MA20数值,
-                "bias_ma5": 乖离率百分比数值,
+                "ma7": MA7数值,
+                "ma13": MA13数值,
+                "ma24": MA24数值,
+                "bias_ma7": 乖离率百分比数值,
                 "bias_status": "安全/警戒/危险",
                 "support_level": 支撑位价格,
                 "resistance_level": 压力位价格
@@ -619,26 +619,26 @@ class GeminiAnalyzer:
 ## 评分标准
 
 ### 强烈买入（80-100分）：
-- ✅ 多头排列：MA5 > MA10 > MA20
-- ✅ 低乖离率：<2%，最佳买点
+- ✅ 多头排列：MA7 > MA13 > MA24
+- ✅ 低乖离率：<3%，最佳买点
 - ✅ 缩量回调或放量突破
 - ✅ 筹码集中健康
 - ✅ 消息面有利好催化
 
 ### 买入（60-79分）：
 - ✅ 多头排列或弱势多头
-- ✅ 乖离率 <5%
+- ✅ 乖离率 <6%
 - ✅ 量能正常
 - ⚪ 允许一项次要条件不满足
 
 ### 观望（40-59分）：
-- ⚠️ 乖离率 >5%（追高风险）
+- ⚠️ 乖离率 >6%（追高风险）
 - ⚠️ 均线缠绕趋势不明
 - ⚠️ 有风险事件
 
 ### 卖出/减仓（0-39分）：
 - ❌ 空头排列
-- ❌ 跌破MA20
+- ❌ 跌破MA24
 - ❌ 放量下跌
 - ❌ 重大利空
 
@@ -1334,10 +1334,10 @@ class GeminiAnalyzer:
 ### 均线系统（关键判断指标）
 | 均线 | 数值 | 说明 |
 |------|------|------|
-| MA5 | {today.get('ma5', 'N/A')} | 短期趋势线 |
-| MA10 | {today.get('ma10', 'N/A')} | 中短期趋势线 |
-| MA20 | {today.get('ma20', 'N/A')} | 中期趋势线 |
-| 均线形态 | {context.get('ma_status', unknown_text)} | 多头/空头/缠绕 |
+| MA7 | {today.get('ma7', 'N/A')} | 短期趋势线 |
+| MA13 | {today.get('ma13', 'N/A')} | 中短期趋势线 |
+| MA24 | {today.get('ma24', 'N/A')} | 中期趋势线 |
+| 均线形态 | {context.get('ma_status', '未知')} | 多头/空头/缠绕 |
 """
         
         # 添加实时行情数据（量比、换手率等）
@@ -1421,18 +1421,18 @@ class GeminiAnalyzer:
         if 'trend_analysis' in context:
             trend = context['trend_analysis']
             if use_legacy_default_prompt:
-                bias_warning = "🚨 超过5%，严禁追高！" if trend.get('bias_ma5', 0) > 5 else "✅ 安全范围"
+                bias_warning = "🚨 超过6%，严禁追高！" if trend.get('bias_ma7', 0) > 6 else "✅ 安全范围"
                 prompt += f"""
 ### 趋势分析预判（基于交易理念）
 | 指标 | 数值 | 判定 |
 |------|------|------|
-| 趋势状态 | {trend.get('trend_status', unknown_text)} | |
-| 均线排列 | {trend.get('ma_alignment', unknown_text)} | MA5>MA10>MA20为多头 |
+| 趋势状态 | {trend.get('trend_status', '未知')} | |
+| 均线排列 | {trend.get('ma_alignment', '未知')} | MA7>MA13>MA24为多头 |
 | 趋势强度 | {trend.get('trend_strength', 0)}/100 | |
-| **乖离率(MA5)** | **{trend.get('bias_ma5', 0):+.2f}%** | {bias_warning} |
-| 乖离率(MA10) | {trend.get('bias_ma10', 0):+.2f}% | |
-| 量能状态 | {trend.get('volume_status', unknown_text)} | {trend.get('volume_trend', '')} |
-| 系统信号 | {trend.get('buy_signal', unknown_text)} | |
+| **乖离率(MA7)** | **{trend.get('bias_ma7', 0):+.2f}%** | {bias_warning} |
+| 乖离率(MA13) | {trend.get('bias_ma13', 0):+.2f}% | |
+| 量能状态 | {trend.get('volume_status', '未知')} | {trend.get('volume_trend', '')} |
+| 系统信号 | {trend.get('buy_signal', '未知')} | |
 | 系统评分 | {trend.get('signal_score', 0)}/100 | |
 
 #### 系统分析理由
@@ -1555,8 +1555,8 @@ class GeminiAnalyzer:
             prompt += f"""
 
 ### 重点关注（必须明确回答）：
-1. ❓ 是否满足 MA5>MA10>MA20 多头排列？
-2. ❓ 当前乖离率是否在安全范围内（<5%）？—— 超过5%必须标注"严禁追高"
+1. ❓ 是否满足 MA7>MA13>MA24 多头排列？
+2. ❓ 当前乖离率是否在安全范围内（<6%）？—— 超过6%必须标注"严禁追高"
 3. ❓ 量能是否配合（缩量回调/放量突破）？
 4. ❓ 筹码结构是否健康？
 5. ❓ 消息面有无重大利空？（减持、处罚、业绩变脸等）
